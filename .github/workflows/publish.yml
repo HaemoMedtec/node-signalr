@@ -2,9 +2,8 @@ name: Publish package to NPM registry
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - '*'
+  release:
+    types: [published]
 
 jobs:
   publish-npm:
