@@ -15,8 +15,8 @@ import { RequestOptions } from './RequestOptions';
 
 
 /**
- * A signalR client for Node.js which support ASP.net but not ASP.net Core.
- * For ASP.net Core signalR support use the offical client from Microsoft.
+ * A signalR client for Node.js which support ASP.NET but not ASP.NET Core.
+ * For ASP.NET Core signalR support use the offical client from Microsoft.
  */
 export class Client extends TypedEmitter<ClientEvents> {
 	readonly subscribedHubs: { name: string }[] = [];
