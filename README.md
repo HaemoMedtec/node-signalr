@@ -15,7 +15,7 @@ $ npm i @haemomedtec/node-signalr
 ### Create a SignalR Client Instance
 
 ```ts
-import signalr from 'node-signalr'
+import signalr from '@haemomedtec/node-signalr'
 
 const client = new signalr.Client('http://localhost:8080/signalr', ['testHub'])
 ```
