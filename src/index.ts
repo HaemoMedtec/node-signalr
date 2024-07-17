@@ -7,12 +7,11 @@ import WebSocket from 'ws';
 
 import { ClientEvents } from './ClientEvents';
 import { Connection } from './Connection';
+import { Hub } from './Hub';
 import { NegotiateProtocol } from './NegotiateProtocol';
+import { RequestOptions } from './RequestOptions';
 import { SignalRMessage } from './SignalRMessage';
 import { SignalRError } from './SignalRError';
-import { Hub } from './Hub';
-import { RequestOptions } from './RequestOptions';
-
 
 /**
  * A signalR client for Node.js which support ASP.NET but not ASP.NET Core.
