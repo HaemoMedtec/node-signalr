@@ -1,7 +1,7 @@
-import { Client } from "src";
-import { HubCallback } from "./HubCallback";
-import { HubEvent } from "./HubEvent";
-import { HubHandler } from "./HubHandler";
+import { Client } from './';
+import { HubCallback } from './HubCallback';
+import { HubEvent } from './HubEvent';
+import { HubHandler } from './HubHandler';
 
 
 export class Hub {

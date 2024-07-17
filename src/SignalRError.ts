@@ -1,4 +1,4 @@
-import { ErrorCode } from "./ErrorCode";
+import { ErrorCode } from './ErrorCode';
 
 /**
  * Create an Error for the signalR client with the specified error code and

@@ -1,4 +1,4 @@
-import { SignalRError } from "src";
+import { SignalRError } from './SignalRError';
 
 
 export type ClientEvents = {
