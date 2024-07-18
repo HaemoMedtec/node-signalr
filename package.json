@@ -36,7 +36,7 @@
     "format": "prettier --write .",
     "lint": "eslint --ext .ts src/**",
     "typecheck": "tsc --noEmit",
-    "build": "npm run lint && unbuild"
+    "build": "npm run lint && unbuild && uglifyjs-folder dist -eo dist -p *cjs -x .cjs && uglifyjs-folder dist -eo dist -p *mjs -x .mjs"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
@@ -48,6 +48,7 @@
     "eslint-plugin-prettier": "^5.1.3",
     "prettier": "^3.2.5",
     "typescript": "^5.4.3",
+    "uglifyjs-folder": "^3.3.0",
     "unbuild": "^2.0.0"
   },
   "dependencies": {
