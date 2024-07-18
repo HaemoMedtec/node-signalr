@@ -18,16 +18,44 @@ import { SignalRError } from './SignalRError';
  * For ASP.NET Core signalR support use the offical client from Microsoft.
  */
 export class Client extends TypedEmitter<ClientEvents> {
+	/**
+	 * List of subscribed hubs.
+	 */
 	readonly subscribedHubs: { name: string }[] = [];
 
+	/**
+	 * Query string parameters.
+	 */
 	qs: Record<string, string> = {};
+
+	/**
+	 * Headers
+	 */
 	headers: Record<string, string> = {};
+	
+	/**
+	 * HTTP agent
+	 */
 	agent?: http.Agent | https.Agent;
 
+	/**
+	 * Request timeout in milliseconds.
+	 */
 	requestTimeout = 5000;
+
+	/**
+	 * Reconnect delay time in milliseconds.
+	 */
 	reconnectDelayTime = 5000;
+
+	/**
+	 * Call timeout in milliseconds.
+	 */
 	callTimeout = 5000;
 
+	/**
+	 * Connection object.
+	 */
 	connection: Connection = {
 		state: 'Disconnected',
 		hub: new Hub(this),
@@ -50,10 +78,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 	private reconnectCount = 0;
 	private reconnectTimer: NodeJS.Timeout | null = null;
 
-	constructor(
-		public readonly url: string,
-		hubs: string[]
-	) {
+	constructor(public readonly url: string, hubs: string[]) {
 		super();
 
 		if (hubs && hubs.length > 0) {
@@ -65,11 +90,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 
 	private _receiveMessage(body: WebSocket.MessageEvent): void {
 		this._markLastMessage();
-		if (
-			body.type === 'message' &&
-			typeof body.data === 'string' &&
-			body.data != '{}'
-		) {
+		if (body.type === 'message' && typeof body.data === 'string' && body.data != '{}') {
 			const data: SignalRMessage = JSON.parse(body.data);
 			if (data.M) {
 				data.M.forEach((message) => {
@@ -96,7 +117,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 			A: args,
 			I: this._invocationId
 		});
-		++this._invocationId;
+		this._invocationId++;
 		if (this.websocket && this.websocket.readyState === this.websocket.OPEN) {
 			this.websocket.send(payload, (err) => {
 				if (err) console.log(err);
@@ -104,9 +125,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 		}
 	}
 
-	private _createRequestQuery(
-		qs: { [key: string]: string | number } = {}
-	): string {
+	private _createRequestQuery(qs: { [key: string]: string | number } = {}): string {
 		const query = querystring.stringify({
 			...this.qs,
 			clientProtocol: 1.5,
@@ -140,9 +159,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 				clientProtocol: 1.5
 			});
 
-			const negotiateRequestOptions = this._makeRequestOptions(
-				`/negotiate?${query}`
-			);
+			const negotiateRequestOptions = this._makeRequestOptions(`/negotiate?${query}`);
 
 			const req = this.request.get(negotiateRequestOptions, (res) => {
 				if (req.destroyed) return;
@@ -156,46 +173,24 @@ export class Client extends TypedEmitter<ClientEvents> {
 						if (res.statusCode == 200) {
 							const protocol: NegotiateProtocol = JSON.parse(data);
 							if (!protocol.TryWebSockets) {
-								reject(
-									new SignalRError(
-										'UNSUPPORTED_WEBSOCKET',
-										'Websocket is not supported'
-									)
-								);
+								reject(new SignalRError('UNSUPPORTED_WEBSOCKET', 'Websocket is not supported'));
 							}
 							const resCookies = res.headers['set-cookie'];
 							if (resCookies) {
 								if (!this.headers) this.headers = {};
-								const headerCookieKey = Object.keys(this.headers).find(
-									(key) => key.toLowerCase() === 'cookie'
-								);
+								const headerCookieKey = Object.keys(this.headers).find((key) => key.toLowerCase() === 'cookie');
 								if (headerCookieKey)
 									this.headers[headerCookieKey] += '; ' + resCookies.join('; ');
 								else this.headers['Cookie'] = resCookies.join('; ');
 							}
 							resolve(protocol);
 						} else if (res.statusCode == 401 || res.statusCode == 302) {
-							reject(
-								new SignalRError(
-									'UNAUTHORIZED',
-									`Server responded with status code ${res.statusCode}, stopping the connection.`
-								)
-							);
+							reject(new SignalRError('UNAUTHORIZED', `Server responded with status code ${res.statusCode}, stopping the connection.`));
 						} else {
-							reject(
-								new SignalRError(
-									'ERR_NEGOTIATE',
-									`Server responded with status code ${res.statusCode}.`
-								)
-							);
+							reject(new SignalRError('ERR_NEGOTIATE', `Server responded with status code ${res.statusCode}.`));
 						}
 					} catch {
-						reject(
-							new SignalRError(
-								'ERR_NEGOTIATE',
-								'Error parsing negotiate response.'
-							)
-						);
+						reject(new SignalRError('ERR_NEGOTIATE', 'Error parsing negotiate response.'));
 					}
 				});
 				res.on('error', (e) => {
@@ -211,12 +206,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 
 			req.on('timeout', (e) => {
 				req.destroy(e);
-				reject(
-					new SignalRError(
-						'ERR_NEGOTIATE',
-						`Timeout of ${this.requestTimeout}ms exceeded.`
-					)
-				);
+				reject(new SignalRError('ERR_NEGOTIATE', `Timeout of ${this.requestTimeout}ms exceeded.`));
 			});
 		});
 	}
@@ -270,20 +260,12 @@ export class Client extends TypedEmitter<ClientEvents> {
 		ws.on('unexpected-response', (_, response) => {
 			this.connection.state = 'Disconnected';
 			if (response && response.statusCode === 401) {
-				this._error(
-					new SignalRError(
-						'UNAUTHORIZED',
-						`Server responded with status code ${response.statusCode}, stopping the connection.`
-					)
-				);
+				this._error(new SignalRError('UNAUTHORIZED', `Server responded with status code ${response.statusCode}, stopping the connection.`));
 				this._clearBeatTimer();
 				this._close();
 				this.emit('disconnected', 'unauthorized');
 			} else {
-				new SignalRError(
-					'ERR_CONNECT',
-					'Connect failed with unexpected response.'
-				);
+				new SignalRError('ERR_CONNECT', 'Connect failed with unexpected response.');
 			}
 		});
 
@@ -297,7 +279,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 		this._clearBeatTimer();
 		this._close();
 		this.reconnectTimer = setTimeout(() => {
-			++this.reconnectCount;
+			this.reconnectCount++;
 			this.connection.state = 'Reconnecting';
 			this.emit('reconnecting', this.reconnectCount);
 			restart ? this.start() : this._connect();
@@ -316,12 +298,7 @@ export class Client extends TypedEmitter<ClientEvents> {
 		const timeElapsed = new Date().getTime() - this.connection.lastMessageAt;
 		if (timeElapsed > this.keepAliveTimeout) {
 			this.connection.state = 'Disconnected';
-			this._error(
-				new SignalRError(
-					'CONNECTION_LOST',
-					'Keep alive timed out. Connection has been lost.'
-				)
-			);
+			this._error(new SignalRError('CONNECTION_LOST', 'Keep alive timed out. Connection has been lost.'));
 		} else {
 			this.beatTimer = setTimeout(() => {
 				this._beat();
@@ -354,19 +331,9 @@ export class Client extends TypedEmitter<ClientEvents> {
 					if (res.statusCode == 200) {
 						resolve();
 					} else if (res.statusCode == 401 || res.statusCode == 302) {
-						reject(
-							new SignalRError(
-								'UNAUTHORIZED',
-								`Server responded with status code ${res.statusCode}, stopping the connection.`
-							)
-						);
+						reject(new SignalRError('UNAUTHORIZED', `Server responded with status code ${res.statusCode}, stopping the connection.`));
 					} else {
-						reject(
-							new SignalRError(
-								'ERR_START',
-								`Server responded with status code ${res.statusCode}.`
-							)
-						);
+						reject(new SignalRError('ERR_START', `Server responded with status code ${res.statusCode}.`));
 					}
 				});
 				res.on('error', (e) => {
@@ -376,18 +343,13 @@ export class Client extends TypedEmitter<ClientEvents> {
 			});
 
 			req.on('error', (e) => {
-				if (req.aborted) return;
+				if (req.destroyed) return;
 				reject(SignalRError.from('ERR_START', e));
 			});
 
 			req.on('timeout', (e) => {
 				req.destroy(e);
-				reject(
-					new SignalRError(
-						'ERR_START',
-						`Timeout of ${this.requestTimeout}ms exceeded.`
-					)
-				);
+				reject(new SignalRError('ERR_START', `Timeout of ${this.requestTimeout}ms exceeded.`));
 			});
 		});
 	}
@@ -438,16 +400,14 @@ export class Client extends TypedEmitter<ClientEvents> {
 				return;
 			}
 			if (this.url.startsWith('http:') || this.url.startsWith('https:')) {
-				const _url = url.parse(this.url);
+				const _url = url.parse(this.url); // todo replace deprecated method
 				this.request = _url.protocol === 'https:' ? https : http;
 			} else {
 				this._error(new SignalRError('INVALID_PROTOCOL', 'Invalid protocol.'));
 				return;
 			}
 			if (this.subscribedHubs.length === 0) {
-				this._error(
-					new SignalRError('NO_HUB', 'No hubs have been subscribed to.')
-				);
+				this._error(new SignalRError('NO_HUB', 'No hubs have been subscribed to.'));
 				return;
 			}
 			this.bound = true;
