@@ -5,12 +5,12 @@ import querystring from 'node:querystring';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import WebSocket from 'ws';
 
-import { ClientEvents } from './ClientEvents';
-import { Connection } from './Connection';
+import { ClientEvents } from './types/ClientEvents';
+import { Connection } from './interfaces/Connection';
 import { Hub } from './Hub';
-import { NegotiateProtocol } from './NegotiateProtocol';
-import { RequestOptions } from './RequestOptions';
-import { SignalRMessage } from './SignalRMessage';
+import { NegotiateProtocol } from './types/NegotiateProtocol';
+import { RequestOptions } from './types/RequestOptions';
+import { SignalRMessage } from './types/SignalRMessage';
 import { SignalRError } from './SignalRError';
 
 /**

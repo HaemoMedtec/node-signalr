@@ -1,5 +1,5 @@
-import { Hub } from './Hub';
-import { ConnectionState } from './ConnectionState';
+import { Hub } from '../Hub';
+import { ConnectionState } from '../types/ConnectionState';
 
 export interface Connection {
 	readonly id?: string;

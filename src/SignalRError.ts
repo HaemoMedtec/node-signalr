@@ -1,10 +1,9 @@
-import { ErrorCode } from './ErrorCode';
+import { ErrorCode } from './types/ErrorCode';
 
 /**
  * Create an Error for the signalR client with the specified error code and
  * message.
  */
-
 export class SignalRError extends Error {
 	code: ErrorCode;
 
