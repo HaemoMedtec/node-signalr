@@ -27,13 +27,20 @@ export class Hub {
 		handler[methodName.toLowerCase()] = cb;
 	}
 
+	call(methodName: string, ...args): Promise<unknown>;
+
 	/**
 	 * Call the hub method and get return values asynchronously
 	 */
 	call(hubName: string, methodName: string, ...args): Promise<unknown> {
 		return new Promise((resolve, reject) => {
-			const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg
-			);
+			const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg);
+
+			if (!hubName) {
+				// set default hubName
+				hubName = this.client.subscribedHubs[0].name;
+			}
+
 			const invocationId = this.client._invocationId;
 			const timeoutTimer = setTimeout(
 				() => {
@@ -51,12 +58,19 @@ export class Hub {
 		});
 	}
 
+	invoke(methodName: string, ...args: unknown[]): void;
+
 	/**
 	 * Invoke the hub method without return values
 	 */
-	invoke(hubName: string, methodName: string, ...args): void {
-		const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg
-		);
+	invoke(hubName: string, methodName: string, ...args: unknown[]): void {
+		const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg);
+
+		if (!hubName) {
+			// set default hubName
+			hubName = this.client.subscribedHubs[0].name;
+		}
+
 		this.client._sendMessage(hubName, methodName, messages);
 	}
 }
