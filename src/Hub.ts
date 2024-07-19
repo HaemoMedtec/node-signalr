@@ -2,12 +2,28 @@ import { Client } from './';
 import { HubCallback } from './types/HubCallback';
 import { HubEvent } from './types/HubEvent';
 import { HubHandler } from './types/HubHandler';
-
+import { HubOverload } from './types/HubOverload';
 
 export class Hub {
 	callbacks: HubCallback = {};
 	handlers: HubHandler = {};
 
+	private _defaultHub: string;
+	
+	public get default(): HubOverload {
+		const hub = this._defaultHub ?? this.client.subscribedHubs[0].name;
+
+		return {
+			invoke: (methodName: string, ...args: unknown[]) => this.invoke(hub, methodName, ...args),
+			call: (methodName: string, ...args: unknown[]) => this.call(hub, methodName, ...args),
+			on: (methodName: string, cb: HubEvent) => this.on(hub, methodName, cb),
+		};
+	}
+	
+	public set default(name: string) {
+		this._defaultHub = this.client.subscribedHubs.find((hub) => hub.name === name)?.name;
+	}
+	
 	constructor(private client: Client) { }
 
 	_handleCallback(invocationId: number, error: unknown, result: unknown): void {
@@ -15,30 +31,10 @@ export class Hub {
 		if (cb) cb(error, result);
 	}
 
-	on(hubName: string, methodName: string, cb: HubEvent): void;
-
-	on(methodName: string, cb: HubEvent): void;
-
 	/**
 	 * Bind events to receive messages.
 	 */
-	on(arg1: string, arg2: string | HubEvent, arg3?: HubEvent): void {
-		let hubName: string;
-		let methodName: string;
-		let cb: HubEvent;
-
-		if (arg3 === undefined) {
-			// If the third argument is undefined, it means hubName is not provided
-			hubName = this.client.subscribedHubs[0].name;
-			methodName = arg1;
-			cb = arg2 as HubEvent;
-		} else {
-			// Both hubName and methodName are provided
-			hubName = arg1;
-			methodName = arg2 as string;
-			cb = arg3;
-		}
-
+	on(hubName: string, methodName: string, cb: HubEvent): void {
 		const _hubName = hubName.toLowerCase();
 		let handler = this.handlers[_hubName];
 		if (!handler) {
@@ -47,30 +43,12 @@ export class Hub {
 		handler[methodName.toLowerCase()] = cb;
 	}
 
-	call(methodName: string, ...args): Promise<unknown>;
-
-	call(hubName: string, methodName: string, ...args): Promise<unknown>;
-
 	/**
 	 * Call the hub method and get return values asynchronously
 	 */
-	call(arg1: string, arg2?: string, ...args: unknown[]): Promise<unknown> {
-		let hubName: string;
-		let methodName: string;
-
-		if (arg2 === undefined) {
-			// If the second argument is undefined, it means hubName is not provided
-			hubName = this.client.subscribedHubs[0].name;
-			methodName = arg1;
-		} else {
-			// Both hubName and methodName are provided
-			hubName = arg1;
-			methodName = arg2;
-		}
-
+	call(hubName: string, methodName: string, ...args): Promise<unknown> {
 		return new Promise((resolve, reject) => {
 			const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg);
-
 			const invocationId = this.client._invocationId;
 			const timeoutTimer = setTimeout(
 				() => {
@@ -88,49 +66,17 @@ export class Hub {
 		});
 	}
 
-	invoke(methodName: string, ...args: unknown[]): void;
-
-	invoke(hubName: string, methodName: string, ...args: unknown[]): void;
-
 	/**
 	 * Invoke the hub method without return values
 	 */
-	invoke(arg1: string, arg2?: string, ...args: unknown[]): void {
-		let hubName: string;
-		let methodName: string;
-
-		if (arg2 === undefined) {
-			// If the second argument is undefined, it means hubName is not provided
-			hubName = this.client.subscribedHubs[0].name;
-			methodName = arg1;
-			args = [arg2, ...args];
-		} else {
-			// Both hubName and methodName are provided
-			hubName = arg1;
-			methodName = arg2;
-		}
-
+	invoke(hubName: string, methodName: string, ...args: unknown[]): void {
 		const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg);
+
+		if (!hubName) {
+			// set default hubName
+			hubName = this.client.subscribedHubs[0].name;
+		}
 
 		this.client._sendMessage(hubName, methodName, messages);
 	}
-
-	// invoke(arg1: string, arg2?: string, ...args: unknown[]): void {
-	// 	let hubName: string;
-	// 	let methodName: string;
-	
-	// 	if (arg2 === undefined) {
-	// 		// If the second argument is undefined, it means hubName is not provided
-	// 		hubName = this.client.subscribedHubs[0].name;
-	// 		methodName = arg1;
-	// 	} else {
-	// 		// Both hubName and methodName are provided
-	// 		hubName = arg1;
-	// 		methodName = arg2;
-	// 	}
-	
-	// 	const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg);
-	
-	// 	this.client._sendMessage(hubName, methodName, messages);
-	// }
 }
