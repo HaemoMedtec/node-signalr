@@ -1,6 +1,6 @@
 {
   "name": "@haemomedtec/node-signalr",
-  "version": "3.1.1-rev.2",
+  "version": "3.1.1-rev.3",
   "description": "A signalR client for Node.JS",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
