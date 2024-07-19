@@ -1,4 +1,4 @@
-import { HubEvent } from "./types/HubEvent";
+import { HubEvent } from './HubEvent';
 
 export type HubOverload = {
 	/**
