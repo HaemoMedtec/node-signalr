@@ -20,7 +20,7 @@ export class Hub {
 		};
 	}
 	
-	public set default(name: string) {
+	public setDefaultHub(name: string) {
 		this._defaultHub = this.client.subscribedHubs.find((hub) => hub.name === name)?.name;
 	}
 	
