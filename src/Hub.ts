@@ -98,19 +98,39 @@ export class Hub {
 	invoke(arg1: string, arg2?: string, ...args: unknown[]): void {
 		let hubName: string;
 		let methodName: string;
-	
+
 		if (arg2 === undefined) {
 			// If the second argument is undefined, it means hubName is not provided
 			hubName = this.client.subscribedHubs[0].name;
 			methodName = arg1;
+			args = [arg2, ...args];
 		} else {
 			// Both hubName and methodName are provided
 			hubName = arg1;
 			methodName = arg2;
 		}
-	
+
 		const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg);
-	
+
 		this.client._sendMessage(hubName, methodName, messages);
 	}
+
+	// invoke(arg1: string, arg2?: string, ...args: unknown[]): void {
+	// 	let hubName: string;
+	// 	let methodName: string;
+	
+	// 	if (arg2 === undefined) {
+	// 		// If the second argument is undefined, it means hubName is not provided
+	// 		hubName = this.client.subscribedHubs[0].name;
+	// 		methodName = arg1;
+	// 	} else {
+	// 		// Both hubName and methodName are provided
+	// 		hubName = arg1;
+	// 		methodName = arg2;
+	// 	}
+	
+	// 	const messages = args.map((arg) => typeof arg === 'function' || typeof arg === 'undefined' ? null : arg);
+	
+	// 	this.client._sendMessage(hubName, methodName, messages);
+	// }
 }
