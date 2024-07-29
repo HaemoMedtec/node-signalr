@@ -13,4 +13,8 @@ export type HubOverload = {
 	 * Bind events to receive messages.
 	 */
 	on(methodName: string, cb: HubEvent): void;
+	/**
+	 * Bind events to receive messages once.
+	 */
+	once(methodName: string, cb: HubEvent): void;
 };

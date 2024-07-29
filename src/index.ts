@@ -103,6 +103,16 @@ export class Client extends TypedEmitter<ClientEvents> {
 							method.apply(this, [message.A]);
 						}
 					}
+
+					const onceHandler = this.connection.hub.onceHandlers[hubName];
+					if (onceHandler) {
+						const methodName = message.M.toLowerCase();
+						const method = onceHandler[methodName];
+						if (method) {
+							method.apply(this, [message.A]);
+							delete onceHandler[methodName];
+						}
+					}
 				});
 			} else if (data.I) {
 				this.connection.hub._handleCallback(+data.I, data.E, data.R);

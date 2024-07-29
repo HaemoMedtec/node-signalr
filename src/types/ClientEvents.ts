@@ -1,6 +1,5 @@
 import { SignalRError } from '../SignalRError';
 
-
 export type ClientEvents = {
 	connected: () => void;
 	reconnecting: (retryCount: number) => void;

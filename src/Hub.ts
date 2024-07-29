@@ -7,6 +7,7 @@ import { HubOverload } from './types/HubOverload';
 export class Hub {
 	callbacks: HubCallback = {};
 	handlers: HubHandler = {};
+	onceHandlers: HubHandler = {};
 
 	private _defaultHub: string;
 	
@@ -17,6 +18,7 @@ export class Hub {
 			invoke: (methodName: string, ...args: unknown[]) => this.invoke(hub, methodName, ...args),
 			call: (methodName: string, ...args: unknown[]) => this.call(hub, methodName, ...args),
 			on: (methodName: string, cb: HubEvent) => this.on(hub, methodName, cb),
+			once: (methodName: string, cb: HubEvent) => this.once(hub, methodName, cb),
 		};
 	}
 	
@@ -78,5 +80,17 @@ export class Hub {
 		}
 
 		this.client._sendMessage(hubName, methodName, messages);
+	}
+
+	/**
+	 * Bind events to receive messages once.
+	 */
+	once(hubName: string, methodName: string, cb: HubEvent): void {
+		const _hubName = hubName.toLowerCase();
+		let handler = this.onceHandlers[_hubName];
+		if (!handler) {
+			handler = this.onceHandlers[_hubName] = {};
+		}
+		handler[methodName.toLowerCase()] = cb;
 	}
 }
